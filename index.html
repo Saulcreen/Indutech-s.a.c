@@ -181,8 +181,8 @@ img{display:block}
 
 /* ── Carousel ── */
 .carousel-wrap{position:relative}
-.carousel-track-outer{overflow:hidden}
-.carousel-track{display:flex;gap:12px;transition:transform .35s cubic-bezier(.22,1,.36,1);will-change:transform}
+.carousel-track-outer{overflow:hidden;position:relative;width:100%}
+.carousel-track{display:flex;gap:12px;transition:transform .35s cubic-bezier(.22,1,.36,1);will-change:transform;width:max-content}
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:10;width:36px;height:36px;border-radius:50%;background:#fff;border:1.5px solid #e5e7eb;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,box-shadow .15s;color:#374151}
 .carousel-btn:hover{background:#f1f5f9;box-shadow:0 4px 16px rgba(0,0,0,.16)}
 .carousel-btn.prev{left:-16px}
@@ -193,7 +193,7 @@ img{display:block}
 .products-grid.wide{grid-template-columns:repeat(5,1fr)}
 
 /* ── Product card ── */
-.product-card{background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #e5e7eb;transition:transform .2s,box-shadow .2s;flex-shrink:0;width:200px}
+.product-card{background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #e5e7eb;transition:transform .2s,box-shadow .2s;flex:0 0 200px;min-width:200px;max-width:200px;width:200px}
 .carousel-track .product-card{width:200px}
 .products-grid .product-card{width:auto}
 .product-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(10,25,47,.12)}
@@ -1054,10 +1054,7 @@ function handleAddToCart(id) {
 }
 
 // ── Carousel state ──
-// ── Infinite Carousel ──
-// Technique: clone N cards at start and end of track.
-// When landing on a clone zone, silently teleport to the real copy.
-const carouselState = {}; // { offset, cloneW, cardW, locked }
+const carouselState = {};
 
 function carouselHTML(id, products) {
   return `
@@ -1065,11 +1062,13 @@ function carouselHTML(id, products) {
       <button class="carousel-btn prev" onclick="carouselMove('${id}',-1)" aria-label="Anterior">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
+
       <div class="carousel-track-outer">
         <div class="carousel-track" id="ctrack-${id}" data-cid="${id}">
           ${products.map(productCardHTML).join('')}
         </div>
       </div>
+
       <button class="carousel-btn next" onclick="carouselMove('${id}',1)" aria-label="Siguiente">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </button>
@@ -1078,40 +1077,15 @@ function carouselHTML(id, products) {
 
 function carouselInit(id) {
   const track = document.getElementById('ctrack-' + id);
-  if (!track || track.dataset.inited) return;
-  track.dataset.inited = '1';
+  if (!track || carouselState[id]) return;
 
-  const cards = Array.from(track.children);
-  if (cards.length === 0) return;
+  carouselState[id] = {
+    index: 0,
+    cardWidth: 212,
+    locked: false
+  };
 
-  // How many clones to prepend/append (enough to fill 2 viewport widths)
-  const CLONE_N = Math.min(cards.length, 8);
-
-  // Append clones at end
-  for (let i = 0; i < CLONE_N; i++) {
-    const cl = cards[i % cards.length].cloneNode(true);
-    cl.dataset.clone = 'tail';
-    track.appendChild(cl);
-  }
-  // Prepend clones at start
-  const head = [];
-  for (let i = 0; i < CLONE_N; i++) {
-    const cl = cards[cards.length - 1 - (i % cards.length)].cloneNode(true);
-    cl.dataset.clone = 'head';
-    head.push(cl);
-  }
-  head.reverse().forEach(cl => track.insertBefore(cl, track.firstChild));
-
-  const card = track.querySelector('.product-card');
-  const gap = 12;
-  const cardW = card.offsetWidth + gap;
-  const cloneW = CLONE_N * cardW;
-  const realW = cards.length * cardW;
-
-  // Start positioned right after the head clones
-  carouselState[id] = { offset: cloneW, cardW, cloneW, realW, locked: false };
-  track.style.transition = 'none';
-  track.style.transform = `translateX(-${cloneW}px)`;
+  track.style.transform = 'translateX(0px)';
 }
 
 function carouselMove(id, dir) {
@@ -1119,46 +1093,31 @@ function carouselMove(id, dir) {
   if (!track) return;
 
   carouselInit(id);
+
   const st = carouselState[id];
-  if (!st || st.locked) return;
+  if (st.locked) return;
 
-  const STEP = st.cardW; // move 1 card per click for smoother UX
-  const newOffset = st.offset + dir * STEP;
+  const totalCards = track.querySelectorAll('.product-card').length;
+  const visibleCards = Math.max(1, Math.floor(track.parentElement.offsetWidth / st.cardWidth));
+  const maxIndex = Math.max(0, totalCards - visibleCards);
 
-  st.offset = newOffset;
+  st.index += dir;
+
+  if (st.index < 0) st.index = 0;
+  if (st.index > maxIndex) st.index = maxIndex;
+
   st.locked = true;
 
-  track.style.transition = 'transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-  track.style.transform = `translateX(-${newOffset}px)`;
+  track.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1)';
+  track.style.transform = `translateX(-${st.index * st.cardWidth}px)`;
 
-  function onEnd() {
-    track.removeEventListener('transitionend', onEnd);
-
-    const { cloneW, realW } = st;
-
-    // Teleport silently: if past the tail clones, jump back to real section
-    if (st.offset >= cloneW + realW) {
-      st.offset -= realW;
-      track.style.transition = 'none';
-      track.style.transform = `translateX(-${st.offset}px)`;
-      // Force reflow so next transition doesn't skip
-      track.getBoundingClientRect();
-    }
-    // Teleport silently: if before the head clones, jump forward to real section
-    else if (st.offset < cloneW) {
-      st.offset += realW;
-      track.style.transition = 'none';
-      track.style.transform = `translateX(-${st.offset}px)`;
-      track.getBoundingClientRect();
-    }
-
+  setTimeout(() => {
     st.locked = false;
-  }
-
-  track.addEventListener('transitionend', onEnd, { once: true });
+  }, 380);
 }
 
 function renderMain() {
+
   setTimeout(initHeroSlideshow, 50);
   const main = document.getElementById('main');
   const isFiltered = activeCategory || searchTerm;
