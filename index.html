@@ -1054,7 +1054,10 @@ function handleAddToCart(id) {
 }
 
 // ── Carousel state ──
-const carouselState = {};
+// ── Infinite Carousel ──
+// Technique: clone N cards at start and end of track.
+// When landing on a clone zone, silently teleport to the real copy.
+const carouselState = {}; // { offset, cloneW, cardW, locked }
 
 function carouselHTML(id, products) {
   return `
@@ -1063,7 +1066,7 @@ function carouselHTML(id, products) {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
       <div class="carousel-track-outer">
-        <div class="carousel-track" id="ctrack-${id}">
+        <div class="carousel-track" id="ctrack-${id}" data-cid="${id}">
           ${products.map(productCardHTML).join('')}
         </div>
       </div>
@@ -1073,25 +1076,79 @@ function carouselHTML(id, products) {
     </div>`;
 }
 
+function carouselInit(id) {
+  const track = document.getElementById('ctrack-' + id);
+  if (!track || track.dataset.inited) return;
+  track.dataset.inited = '1';
+
+  const cards = Array.from(track.children);
+  if (cards.length === 0) return;
+
+  // How many clones to prepend/append (enough to fill 2 viewport widths)
+  const CLONE_N = Math.min(cards.length, 8);
+
+  // Append clones at end
+  for (let i = 0; i < CLONE_N; i++) {
+    const cl = cards[i % cards.length].cloneNode(true);
+    cl.dataset.clone = 'tail';
+    track.appendChild(cl);
+  }
+  // Prepend clones at start
+  const head = [];
+  for (let i = 0; i < CLONE_N; i++) {
+    const cl = cards[cards.length - 1 - (i % cards.length)].cloneNode(true);
+    cl.dataset.clone = 'head';
+    head.push(cl);
+  }
+  head.reverse().forEach(cl => track.insertBefore(cl, track.firstChild));
+
+  const card = track.querySelector('.product-card');
+  const gap = 12;
+  const cardW = card.offsetWidth + gap;
+  const cloneW = CLONE_N * cardW;
+  const realW = cards.length * cardW;
+
+  // Start positioned right after the head clones
+  carouselState[id] = { offset: cloneW, cardW, cloneW, realW, locked: false };
+  track.style.transition = 'none';
+  track.style.transform = `translateX(-${cloneW}px)`;
+}
+
 function carouselMove(id, dir) {
   const track = document.getElementById('ctrack-' + id);
   if (!track) return;
-  const card = track.querySelector('.product-card');
-  if (!card) return;
-  const cardW = card.offsetWidth + 12; // gap
-  const visibleW = track.parentElement.offsetWidth;
-  const totalW = track.scrollWidth;
-  const maxOffset = totalW - visibleW;
 
-  if (!carouselState[id]) carouselState[id] = 0;
-  let offset = carouselState[id] + dir * cardW * 2;
+  carouselInit(id);
+  const st = carouselState[id];
+  if (!st || st.locked) return;
 
-  // Wrap around
-  if (offset > maxOffset) offset = 0;
-  if (offset < 0) offset = maxOffset;
+  const STEP = st.cardW * 2; // move 2 cards per click
+  const newOffset = st.offset + dir * STEP;
 
-  carouselState[id] = offset;
-  track.style.transform = `translateX(-${offset}px)`;
+  st.offset = newOffset;
+  st.locked = true;
+
+  track.style.transition = 'transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  track.style.transform = `translateX(-${newOffset}px)`;
+
+  track.addEventListener('transitionend', function onEnd() {
+    track.removeEventListener('transitionend', onEnd);
+
+    const { cloneW, realW } = st;
+    // If we've scrolled into the tail clone zone → teleport back silently
+    if (st.offset >= cloneW + realW) {
+      st.offset -= realW;
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-${st.offset}px)`;
+    }
+    // If we've scrolled into the head clone zone → teleport forward silently
+    if (st.offset < cloneW) {
+      st.offset += realW;
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-${st.offset}px)`;
+    }
+    st.locked = false;
+  }, { once: true });
 }
 
 function renderMain() {
