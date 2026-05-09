@@ -178,8 +178,8 @@ img{display:block}
 .offers-body{padding:20px 24px}
 
 /* ── Products grid ── */
-.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
-.products-grid.wide{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.products-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.products-grid.wide{grid-template-columns:repeat(4,1fr)}
 
 /* ── Product card ── */
 .product-card{background:#fff;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #e5e7eb;transition:transform .2s,box-shadow .2s}
@@ -230,6 +230,7 @@ footer{background:#fff;border-top:1px solid #e5e7eb;margin-top:16px}
 .footer-bottom-links a{font-size:12px;color:#4b6a8a}
 
 /* ── Responsive ── */
+@media(max-width:1024px){.products-grid,.products-grid.wide{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:768px){
   .search-form{display:none}
   .hero-content{grid-template-columns:1fr}
@@ -237,6 +238,7 @@ footer{background:#fff;border-top:1px solid #e5e7eb;margin-top:16px}
   .cats-grid{grid-template-columns:repeat(2,1fr)}
   .hero-content{padding:32px 20px}
 }
+@media(max-width:600px){.products-grid,.products-grid.wide{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){
   .header-top{gap:10px}
   .btn-login span{display:none}
@@ -451,6 +453,28 @@ const PRODUCTS = [
   {id:"s4",title:"Instalación de Redes Eléctricas Industriales",desc:"Diseño e instalación bajo norma RETIE por ingenieros certificados.",cat:"mantenimiento",type:"servicio",price:4500000,original:5500000,discount:18,img:"https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=600&q=80",rating:4.9,reviews:57,ship:false},
   {id:"s5",title:"Automatización de Procesos a Medida",desc:"Solución PLC+HMI+SCADA adaptada a tu proceso productivo.",cat:"mantenimiento",type:"servicio",price:18000000,original:22000000,discount:18,img:"https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&q=80",rating:5.0,reviews:12,ship:false},
   {id:"s6",title:"Diagnóstico Termográfico de Instalaciones",desc:"Inspección con cámara FLIR e informe técnico en 48h.",cat:"mantenimiento",type:"servicio",price:980000,original:1200000,discount:18,img:"https://images.unsplash.com/photo-1759692071969-c32285cffc40?w=600&q=80",rating:4.8,reviews:76,ship:false},
+
+  // ── Electricidad adicional ──
+  {id:"p22",title:"Guardamotor 3RV1 9-12A",desc:"Protección térmica y magnética para motores trifásicos hasta 12A.",cat:"electricidad",type:"producto",price:310000,original:370000,discount:16,img:"https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&q=80",rating:4.6,reviews:118,ship:true},
+  {id:"p23",title:"UPS Industrial Online 3 KVA",desc:"Sistema de alimentación ininterrumpida para cargas críticas.",cat:"electricidad",type:"producto",price:2800000,original:3300000,discount:15,img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",rating:4.7,reviews:74,ship:true},
+  {id:"p24",title:"Barra de Cobre 50x6mm (metro)",desc:"Barra de cobre electrolítico para tableros de distribución.",cat:"electricidad",type:"producto",price:95000,original:115000,discount:17,img:"https://images.unsplash.com/photo-1622426385889-4fc93a72423a?w=600&q=80",rating:4.5,reviews:229,ship:false},
+  {id:"p25",title:"Arrancador Suave 30A 220V",desc:"Soft starter para arranque progresivo de motores industriales.",cat:"electricidad",type:"producto",price:1650000,original:1950000,discount:15,img:"https://images.unsplash.com/photo-1565043666747-69f6646db940?w=600&q=80",rating:4.8,reviews:47,ship:true},
+
+  // ── Automatización adicional ──
+  {id:"p26",title:"Sensor Inductivo M18 NPN 8mm",desc:"Sensor de proximidad para detección de metales en línea de producción.",cat:"automatizacion",type:"producto",price:85000,original:100000,discount:15,img:"https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",rating:4.7,reviews:312,ship:true},
+  {id:"p27",title:"Fuente SITOP 24V 10A",desc:"Fuente de alimentación industrial Siemens para PLC y periferia.",cat:"automatizacion",type:"producto",price:920000,original:1100000,discount:16,img:"https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80",rating:4.9,reviews:85,ship:true},
+  {id:"p28",title:"Cilindro Neumático Doble Efecto 63x200",desc:"Actuador neumático de aluminio con vástago de acero inox.",cat:"automatizacion",type:"producto",price:480000,original:560000,discount:14,img:"https://images.unsplash.com/photo-1561144257-e32e8efc6c4f?w=600&q=80",rating:4.6,reviews:93,ship:false},
+  {id:"p29",title:"Switch Industrial Ethernet 8 puertos",desc:"Switch gestionable DIN rail para redes industriales Profinet.",cat:"automatizacion",type:"producto",price:1250000,original:1480000,discount:16,img:"https://images.unsplash.com/photo-1622426385889-4fc93a72423a?w=600&q=80",rating:4.7,reviews:38,ship:true},
+
+  // ── Instrumentación adicional ──
+  {id:"p30",title:"Nivel de Radar VEGAPULS 21",desc:"Sensor de nivel sin contacto para líquidos y sólidos a granel.",cat:"instrumentacion",type:"producto",price:8200000,original:9800000,discount:16,img:"https://images.unsplash.com/photo-1655204903983-73007f15cb3e?w=600&q=80",rating:4.8,reviews:22,ship:false},
+  {id:"p31",title:"Pinza Amperimétrica AC/DC 1000A",desc:"Analizador de corriente con Bluetooth y app móvil.",cat:"instrumentacion",type:"producto",price:1100000,original:1300000,discount:15,img:"https://images.unsplash.com/photo-1622426385889-4fc93a72423a?w=600&q=80",rating:4.7,reviews:149,ship:true},
+  {id:"p32",title:"Transductor de pH Industrial",desc:"Electrodo de pH con transmisor 4-20mA para aguas residuales.",cat:"instrumentacion",type:"producto",price:780000,original:920000,discount:15,img:"https://images.unsplash.com/photo-1565043666747-69f6646db940?w=600&q=80",rating:4.5,reviews:58,ship:false},
+  {id:"p33",title:"Manómetro Digital con Switch 0-16 Bar",desc:"Pressostato digital con display y 2 salidas de relé.",cat:"instrumentacion",type:"producto",price:350000,original:420000,discount:17,img:"https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=600&q=80",rating:4.6,reviews:107,ship:true},
+
+  // ── Mantenimiento adicional ──
+  {id:"s7",title:"Mantenimiento Motores Eléctricos",desc:"Rebobinado, balanceo dinámico y pruebas de aislamiento.",cat:"mantenimiento",type:"servicio",price:1200000,original:1500000,discount:20,img:"https://images.unsplash.com/photo-1759692071969-c32285cffc40?w=600&q=80",rating:4.9,reviews:134,ship:false},
+  {id:"s8",title:"Auditoría Energética Industrial",desc:"Estudio completo de consumos con plan de ahorro certificado.",cat:"mantenimiento",type:"servicio",price:3500000,original:4200000,discount:17,img:"https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600&q=80",rating:5.0,reviews:28,ship:false},
 ];
 
 const CATS = [
@@ -890,7 +914,7 @@ function renderMain() {
       </section>`;
 
     // Offers
-    const offers = PRODUCTS.filter(p=>p.discount>=15).slice(0,6);
+    const offers = PRODUCTS.filter(p=>p.discount>=15).slice(0,8);
     html += `
       <section class="section" id="ofertas">
         <div class="offers-box">
@@ -916,7 +940,7 @@ function renderMain() {
 
     // Category sections
     Object.entries(LABELS).forEach(([key,label])=>{
-      const prods = PRODUCTS.filter(p=>p.cat===key).slice(0,4);
+      const prods = PRODUCTS.filter(p=>p.cat===key).slice(0,8);
       html += `
         <section class="section" id="${key}">
           <div class="section-head">
