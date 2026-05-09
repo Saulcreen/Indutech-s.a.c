@@ -490,7 +490,7 @@ const LABELS = {electricidad:"Electricidad Industrial",automatizacion:"Automatiz
 // STATE
 // ══════════════════════════════════════════════════════════════════
 let cart = [];
-let user = null;
+let user = (()=>{ try { const s=localStorage.getItem('indutech_user'); return s?JSON.parse(s):null; } catch(e){ return null; } })();
 let activeCategory = null;
 let searchTerm = "";
 
@@ -674,14 +674,16 @@ function handleFormLogin() {
   }, 800);
 }
 
-function loginUser(u) {
+function loginUser(u, silent=false) {
   user = u;
+  try { localStorage.setItem('indutech_user', JSON.stringify(u)); } catch(e){}
   renderAuthArea();
-  showToast(`¡Bienvenido, ${u.name.split(' ')[0]}!`);
+  if (!silent) showToast(`¡Bienvenido, ${u.name.split(' ')[0]}!`);
 }
 
 function handleLogout() {
   user = null;
+  try { localStorage.removeItem('indutech_user'); } catch(e){}
   cart = [];
   renderAuthArea();
   renderCart();
@@ -987,6 +989,8 @@ function renderMain() {
 // ══════════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════════
+// Restore session silently if user was already logged in
+if (user) { try { localStorage.setItem('indutech_user', JSON.stringify(user)); } catch(e){} }
 renderAuthArea();
 renderMain();
 </script>
