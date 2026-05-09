@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
+:root{
+  --products-per-row:5;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:#ECEEF2;color:#111}
 h1,h2,h3,h4{font-family:'Barlow Condensed',sans-serif}
@@ -189,8 +193,8 @@ img{display:block}
 .carousel-btn.next{right:-16px}
 
 /* ── Products grid (fallback for filtered view) ── */
-.products-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.products-grid.wide{grid-template-columns:repeat(5,1fr)}
+.products-grid{display:grid;grid-template-columns:repeat(var(--products-per-row),1fr);gap:12px}
+.products-grid.wide{grid-template-columns:repeat(var(--products-per-row),1fr)}
 
 /* ── Product card ── */
 .product-card{background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;border:1px solid #e5e7eb;transition:transform .2s,box-shadow .2s;flex:0 0 200px;min-width:200px;max-width:200px;width:200px}
@@ -256,6 +260,56 @@ footer{background:#fff;border-top:1px solid #e5e7eb;margin-top:16px}
 @media(max-width:480px){
   .header-top{gap:10px}
   .btn-login span{display:none}
+}
+
+
+@media(max-width:1024px){
+  :root{
+    --products-per-row:4;
+  }
+}
+
+@media(max-width:768px){
+  :root{
+    --products-per-row:3;
+  }
+
+  .hero-content{
+    grid-template-columns:1fr!important;
+  }
+
+  .hero-grid{
+    display:none!important;
+  }
+
+  .search-form{
+    display:none!important;
+  }
+}
+
+@media(max-width:600px){
+  :root{
+    --products-per-row:2;
+  }
+
+  .header-top{
+    flex-wrap:wrap;
+  }
+
+  .product-card{
+    min-width:160px!important;
+    max-width:160px!important;
+    width:160px!important;
+    flex:0 0 160px!important;
+  }
+
+  .hero h1{
+    font-size:34px!important;
+  }
+
+  .hero p{
+    font-size:13px!important;
+  }
 }
 
 /* ── Checkout overlay ── */
@@ -1551,5 +1605,38 @@ renderAuthArea();
 renderMain();
 initHeroSlideshow();
 </script>
+
+<script>
+function getDeviceType(){
+  const width = window.innerWidth;
+
+  if(width <= 600) return 'mobile';
+  if(width <= 1024) return 'tablet';
+
+  return 'desktop';
+}
+
+function applyResponsiveLayout(){
+  const device = getDeviceType();
+
+  document.body.setAttribute('data-device', device);
+
+  const root = document.documentElement;
+
+  if(device === 'mobile'){
+    root.style.setProperty('--products-per-row','2');
+  }
+  else if(device === 'tablet'){
+    root.style.setProperty('--products-per-row','3');
+  }
+  else{
+    root.style.setProperty('--products-per-row','5');
+  }
+}
+
+window.addEventListener('resize', applyResponsiveLayout);
+window.addEventListener('load', applyResponsiveLayout);
+</script>
+
 </body>
 </html>
