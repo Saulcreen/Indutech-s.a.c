@@ -1343,6 +1343,14 @@ function renderMain() {
 
   main.innerHTML = html;
   updateCountdown();
+
+  // Inicializar todos los carousels (necesario para touch en móvil)
+  setTimeout(() => {
+    document.querySelectorAll('.carousel-track').forEach(track => {
+      const id = track.getAttribute('data-cid');
+      if (id) carouselInit(id);
+    });
+  }, 0);
 }
 
 // ══════════════════════════════════════════════════════════════════
