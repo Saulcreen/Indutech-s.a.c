@@ -1135,13 +1135,41 @@ function carouselInit(id) {
   const track = document.getElementById('ctrack-' + id);
   if (!track || carouselState[id]) return;
 
+  const cardWidth = 212;
+
+  // ── Clone first/last cards for infinite loop ──
+  const origCards = Array.from(track.querySelectorAll('.product-card'));
+  const total = origCards.length;
+  const clonesBefore = Math.min(total, 4); // clone up to 4 cards before
+  const clonesAfter  = Math.min(total, 4); // clone up to 4 cards after
+
+  // prepend clones of last N cards
+  for (let i = clonesBefore - 1; i >= 0; i--) {
+    const clone = origCards[total - 1 - (clonesBefore - 1 - i)].cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    track.insertBefore(clone, track.firstChild);
+  }
+  // append clones of first N cards
+  for (let i = 0; i < clonesAfter; i++) {
+    const clone = origCards[i].cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    track.appendChild(clone);
+  }
+
+  // Start at first real card (index = clonesBefore)
+  const startIndex = clonesBefore;
+
   carouselState[id] = {
-    index: 0,
-    cardWidth: 212,
-    locked: false
+    index: startIndex,
+    cardWidth,
+    locked: false,
+    total,        // original count
+    clonesBefore,
+    clonesAfter
   };
 
-  track.style.transform = 'translateX(0px)';
+  track.style.transition = 'none';
+  track.style.transform = `translateX(-${startIndex * cardWidth}px)`;
 
   // ── Touch / swipe support ──
   let touchStartX = 0;
@@ -1162,14 +1190,11 @@ function carouselInit(id) {
     if (!isDragging) return;
     const dx = e.touches[0].clientX - touchStartX;
     const dy = e.touches[0].clientY - touchStartY;
-
-    // If scrolling vertically, cancel drag
     if (Math.abs(dy) > Math.abs(dx) + 5) {
       isDragging = false;
       track.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1)';
       return;
     }
-
     e.preventDefault();
     dragOffset = dx;
     const st = carouselState[id];
@@ -1181,18 +1206,35 @@ function carouselInit(id) {
     if (!isDragging) return;
     isDragging = false;
     track.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1)';
-
     const threshold = 50;
     if (dragOffset < -threshold) {
       carouselMove(id, 1);
     } else if (dragOffset > threshold) {
       carouselMove(id, -1);
     } else {
-      // Snap back to current position
       const st = carouselState[id];
       track.style.transform = `translateX(-${st.index * st.cardWidth}px)`;
     }
   }, { passive: true });
+
+  // After each transition ends, check if we landed on a clone and jump silently
+  track.addEventListener('transitionend', () => {
+    const st = carouselState[id];
+    const firstReal = st.clonesBefore;
+    const lastReal  = st.clonesBefore + st.total - 1;
+
+    if (st.index < firstReal) {
+      // jumped before first real → teleport to equivalent real card at end
+      st.index = lastReal - (firstReal - 1 - st.index);
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-${st.index * st.cardWidth}px)`;
+    } else if (st.index > lastReal) {
+      // jumped after last real → teleport to equivalent real card at start
+      st.index = firstReal + (st.index - lastReal - 1);
+      track.style.transition = 'none';
+      track.style.transform = `translateX(-${st.index * st.cardWidth}px)`;
+    }
+  });
 }
 
 function carouselMove(id, dir) {
@@ -1204,15 +1246,7 @@ function carouselMove(id, dir) {
   const st = carouselState[id];
   if (st.locked) return;
 
-  const totalCards = track.querySelectorAll('.product-card').length;
-  const visibleCards = Math.max(1, Math.floor(track.parentElement.offsetWidth / st.cardWidth));
-  const maxIndex = Math.max(0, totalCards - visibleCards);
-
   st.index += dir;
-
-  if (st.index < 0) st.index = 0;
-  if (st.index > maxIndex) st.index = maxIndex;
-
   st.locked = true;
 
   track.style.transition = 'transform 0.35s cubic-bezier(.22,1,.36,1)';
