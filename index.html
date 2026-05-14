@@ -554,7 +554,7 @@ footer{background:#fff;border-top:1px solid #e5e7eb;margin-top:16px}
     <div class="trust-inner">
       <div class="trust-item">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-        <div><div class="trust-title">Productos certificados</div><div class="trust-desc">Cumplen norma RETIE</div></div>
+        <div><div class="trust-title">Productos certificados</div><div class="trust-desc">Cumplen norma NTP</div></div>
       </div>
       <div class="trust-item">
         <div class="trust-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.8"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11v12H5z"/><path d="M16 3h4l3 5v6h-7V3z"/><circle cx="5.5" cy="17" r="2.5"/><circle cx="18.5" cy="17" r="2.5"/></svg></div>
@@ -577,7 +577,7 @@ footer{background:#fff;border-top:1px solid #e5e7eb;margin-top:16px}
           <div class="logo-icon" style="width:32px;height:32px;border-radius:7px;background:#242e43"><svg width="17" height="17" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3" width="20" height="3" rx="1.5"/><rect x="3" y="8" width="3" height="13" rx="1"/><rect x="10.5" y="8" width="3" height="13" rx="1"/><rect x="18" y="8" width="3" height="13" rx="1"/></svg></div>
           <span class="logo-text">INDU<span>TECH</span></span>
         </div>
-        <p style="font-size:13px;color:#93c5fd;line-height:1.6">Soluciones industriales. Tu aliado en electricidad, automatización e instrumentación.</p>
+        <p style="font-size:13px;color:#93c5fd;line-height:1.6">Soluciones industriales. Tu aliado en electricidad, automatización e instrumentación. Lima, Perú.</p>
       </div>
       <div class="footer-col">
         <h4>Categorías</h4>
@@ -589,7 +589,7 @@ footer{background:#fff;border-top:1px solid #e5e7eb;margin-top:16px}
       </div>
       <div class="footer-col">
         <h4>Contacto</h4>
-        <ul><li><a href="#">+57 (1) 555-0100</a></li><li><a href="#">ventas@indutech.co</a></li><li><a href="#">Bogotá, Colombia</a></li></ul>
+        <ul><li><a href="#">+51 (1) 000-0000</a></li><li><a href="#">ventas@indutech.pe</a></li><li><a href="#">Lima, Perú</a></li></ul>
       </div>
     </div>
     <div class="footer-bottom">
@@ -744,7 +744,7 @@ let searchTerm = "";
 // ══════════════════════════════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════════════════════════════
-const cop = n => new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n||0);
+const cop = n => 'S/ ' + new Intl.NumberFormat('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}).format((n||0)/1000);
 
 let toastTimer = {};
 function showToast(msg, type='success') {
@@ -1020,10 +1020,12 @@ function renderCart() {
 // COUNTDOWN
 // ══════════════════════════════════════════════════════════════════
 function updateCountdown() {
-  const now = Date.now();
-  const end = new Date(); end.setHours(23,59,59,999);
-  const d = Math.max(0, end.getTime()-now);
-  const h = Math.floor(d/3600000), m = Math.floor((d%3600000)/60000), s = Math.floor((d%60000)/1000);
+  const end = new Date('2026-05-18T23:59:59');
+  const d = Math.max(0, end.getTime()-Date.now());
+  const days = Math.floor(d/86400000);
+  const h = Math.floor((d%86400000)/3600000), m = Math.floor((d%3600000)/60000), s = Math.floor((d%60000)/1000);
+  const elD = document.getElementById('cd-d');
+  if(elD) elD.textContent = String(days).padStart(2,'0');
   ['cd-h','cd-m','cd-s'].forEach((id,i)=>{
     const el = document.getElementById(id);
     if(el) el.textContent = String([h,m,s][i]).padStart(2,'0');
@@ -1272,9 +1274,9 @@ function renderMain() {
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <div>
-            <div class="hero-badge">⚡ SEMANA INDUSTRIAL · HASTA 30% OFF</div>
+            <div class="hero-badge">⚡ OFERTA ESPECIAL · HASTA EL LUNES 18/05</div>
             <h1>Soluciones Industriales<br><span>a un click</span></h1>
-            <p>Electricidad industrial, automatización, instrumentación y mantenimiento electromecánico.</p>
+            <p>Electricidad industrial, automatización, instrumentación y mantenimiento electromecánico. Lima, Perú.</p>
             <div class="hero-btns">
               <button class="btn-primary" onclick="document.getElementById('ofertas').scrollIntoView({behavior:'smooth'})">Ver ofertas →</button>
               <button class="btn-outline" onclick="document.getElementById('categorias').scrollIntoView({behavior:'smooth'})">Explorar catálogo</button>
@@ -1317,13 +1319,14 @@ function renderMain() {
           <div class="offers-head">
             <div>
               <div class="offers-label">Ofertas del día</div>
-              <div class="offers-title">Promociones por tiempo limitado</div>
+              <div class="offers-title">Promoción hasta el Lunes 18/05</div>
             </div>
             <div class="countdown">
               <span>Termina en</span>
               <div class="countdown-digits">
-                <span class="countdown-digit" id="cd-h">00</span>
-                <span class="countdown-digit" id="cd-m">00</span>
+                <span class="countdown-digit" id="cd-d">00</span><span style="color:#fff;font-weight:800;font-size:14px;padding:0 2px">d</span>
+                <span class="countdown-digit" id="cd-h">00</span><span style="color:#fff;font-weight:800;font-size:14px;padding:0 2px">h</span>
+                <span class="countdown-digit" id="cd-m">00</span><span style="color:#fff;font-weight:800;font-size:14px;padding:0 2px">m</span>
                 <span class="countdown-digit" id="cd-s">00</span>
               </div>
             </div>
